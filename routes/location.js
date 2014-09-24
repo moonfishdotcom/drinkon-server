@@ -22,7 +22,7 @@ router.get('/', function(req, res) {
 });
 
 router.get('/:locationId', function(req, res) {
-  connection.query('CALL GetLocationAndVendors(' + req.params.locationId + ');', function(err, rows) {
+  connection.query('CALL GetLocationAndVendors(?);', [req.params.locationId], function(err, rows) {
     var records = rows[0]; // not interested in query information
     if (records.length > 0) {
       // Transform the flat row data into more structured json

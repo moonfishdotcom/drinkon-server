@@ -10,8 +10,8 @@ var connection = mysql.createConnection({
   database: 'drinkon'
 });
 
-router.get('/:vendorId', function(req, res) {
-  connection.query('CALL GetVendor(' + req.params.vendorId + ');', function(err, row) {
+router.get('/:vendorId', function (req, res) {
+  connection.query('CALL GetVendor(?);', [req.params.vendorId], function (err, row) {
     if (row && row.length > 0 && row[0].length > 0) {
       var record = row[0][0];
       var returnVal = {
@@ -48,27 +48,48 @@ router.get('/:vendorId', function(req, res) {
   })
 });
 
-router.get('/:vendorId/product', function(req, res) {
-  connection.query('CALL GetVendorProducts(' + req.params.vendorId + ');', function(err, row) {
+function mapToProductTypeHeader(record) {
+  return {
+    id: record.product_type_id,
+    name: record.product_type_name
+  };
+}
+
+function mapToProductHeader(record) {
+  return {
+    id: record.product_id,
+    name: record.product_name
+  };
+}
+
+function concatIdAndNameForEquality(record) {
+  return record.id + '|' + record.name;
+}
+
+router.get('/:vendorId/product', function (req, res) {
+  connection.query('CALL GetVendorProducts(?);', [req.params.vendorId], function (err, row) {
     var records = row[0];
     var returnVal = {
       productTypes: []
     };
 
-    _.forEach(_.unique(_.pluck(records, 'product_type_name')), function(productTypeName) {
+    _.forEach(_.unique(_.map(records, mapToProductTypeHeader), concatIdAndNameForEquality), function (productType) {
       var productType = {
-        name: productTypeName,
+        id: productType.id,
+        name: productType.name,
         products: []
       };
 
-      _.forEach(_.unique(_.pluck(_.where(records, { 'product_type_name': productTypeName }), 'product_name')), function(productName) {
+      _.forEach(_.unique(_.map(_.where(records, { 'product_type_name': productType.name }), mapToProductHeader), concatIdAndNameForEquality), function (product) {
         var product = {
-          name: productName,
+          id: product.id,
+          name: product.name,
           measures: []
         };
 
-        _.forEach(_.where(records, { 'product_type_name': productTypeName, 'product_name': productName}), function(productMeasure) {
+        _.forEach(_.where(records, { 'product_type_name': productType.name, 'product_name': product.name}), function (productMeasure) {
           product.measures.push({
+            id: productMeasure.product_measure_id,
             name: productMeasure.product_measure_name,
             unitPrice: productMeasure.product_unit_price
           });

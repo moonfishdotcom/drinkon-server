@@ -10,26 +10,74 @@ var connection = mysql.createConnection({
   database: 'drinkon'
 });
 
-router.get('/', function(req, res) {
-  connection.query('CALL GetOrders();', function (err, rows) {
+router.get('/:orderId', function (req, res) {
+  var order = null;
+  connection.query('CALL GetOrderHeader(?);', [req.params.orderId], function (err, headers) {
     if (err) {
+      console.log(err);
       res.status(500).send({ error: err });
     }
     else {
-      res.status(200).json(rows[0]);
+      order = headers[0][0];
+      connection.query('CALL GetOrderLines(?);', [req.params.orderId], function (err, lines) {
+        if (err) {
+          console.log(err);
+          res.status(500).send({ error: err });
+        }
+        else {
+          if (lines.length > 0) {
+            order.lines = lines[0];
+          }
+          else {
+            order.lines = [];
+          }
+          res.status(200).send(order);
+        }
+      })
+    }
+  })
+});
+
+router.get('/user/:userId', function(req, res) {
+  connection.query('CALL GetOrdersForUser(?);', [req.params.userId], function (err, headers) {
+    if (err) {
+      console.log(err);
+      res.status(500).send({ error: err });
+    }
+    else {
+      res.status(200).send(headers[0]);
     }
   });
 });
 
-router.post('/', function(req, res) {
-  connection.query('CALL BangInOrder();', function(err, rows) {
+router.post('/', function (req, res) {
+  connection.query('CALL CreateOrder(?,?);', [req.body.vendorId, req.body.customerName], function (err, rows) {
     if (err) {
+      console.log(err);
       res.status(500).send({ error: err });
     }
     else {
-      res.status(200).send({ message: 'Nice one' });
+      res.status(200).send(rows[0]);
     }
   });
+});
+
+router.post('/:orderId/line', function (req, res) {
+  console.log(req.body);
+  connection.query('CALL AddLineToOrder(?,?,?,?);', [
+      req.params.orderId,
+      req.body.productId,
+      req.body.measureId,
+      req.body.quantity],
+    function (err, rows) {
+      if (err) {
+        console.log(err);
+        res.status(500).send({ error: err });
+      }
+      else {
+        res.status(200).send(rows[0]);
+      }
+    });
 });
 
 module.exports = router;
