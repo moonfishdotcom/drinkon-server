@@ -7,19 +7,19 @@ var connection = mysql.createConnection({
   host: '127.0.0.1',
   user: 'root',
   password: '',
-  database: 'drinkon'
+  database: 'drinkonstd'
 });
 
 router.get('/:orderId', function (req, res) {
   var order = null;
-  connection.query('CALL GetOrderHeader(?);', [req.params.orderId], function (err, headers) {
+  connection.query('CALL get_order_header(?);', [req.params.orderId], function (err, headers) {
     if (err) {
       console.log(err);
       res.status(500).send({ error: err });
     }
     else {
       order = headers[0][0];
-      connection.query('CALL GetOrderLines(?);', [req.params.orderId], function (err, lines) {
+      connection.query('CALL get_order_lines(?);', [req.params.orderId], function (err, lines) {
         if (err) {
           console.log(err);
           res.status(500).send({ error: err });
@@ -39,7 +39,7 @@ router.get('/:orderId', function (req, res) {
 });
 
 router.get('/user/:userId', function(req, res) {
-  connection.query('CALL GetOrdersForUser(?);', [req.params.userId], function (err, headers) {
+  connection.query('CALL get_orders_for_user (?);', [req.params.userId], function (err, headers) {
     if (err) {
       console.log(err);
       res.status(500).send({ error: err });
@@ -51,7 +51,7 @@ router.get('/user/:userId', function(req, res) {
 });
 
 router.post('/', function (req, res) {
-  connection.query('CALL CreateOrder(?,?);', [req.body.vendorId, req.body.customerName], function (err, rows) {
+  connection.query('CALL create_order(?,?);', [req.body.vendorId, req.body.customerId], function (err, rows) {
     if (err) {
       console.log(err);
       res.status(500).send({ error: err });
@@ -64,7 +64,7 @@ router.post('/', function (req, res) {
 
 router.post('/:orderId/line', function (req, res) {
   console.log(req.body);
-  connection.query('CALL AddLineToOrder(?,?,?,?);', [
+  connection.query('CALL add_order_line(?,?,?,?);', [
       req.params.orderId,
       req.body.productId,
       req.body.measureId,
@@ -79,5 +79,33 @@ router.post('/:orderId/line', function (req, res) {
       }
     });
 });
+
+router.put('/:orderId/line/:lineId', function(req, res) {
+  connection.query('CALL update_order_line(?,?);', [
+    req.params.lineId,
+    req.body.quantity],
+    function(err, rows) {
+      if (err) {
+        console.log(err);
+        res.status(500).send({ error: err });
+      }
+      else {
+        res.status(200).send(rows[0]);
+      }
+    });
+});
+
+router.delete('/:orderId/line/:lineId', function(req, res) {
+  connection.query('CALL delete_order_line(?);', [req.params.lineId],
+    function(err, rows) {
+      if (err) {
+        console.log(err);
+        res.status(500).send({ error: err });
+      }
+      else {
+        res.status(200).send(rows[0]);
+      }
+    });
+})
 
 module.exports = router;

@@ -7,11 +7,11 @@ var connection = mysql.createConnection({
   host: '127.0.0.1',
   user: 'root',
   password: '',
-  database: 'drinkon'
+  database: 'drinkonstd'
 });
 
 router.get('/', function(req, res) {
-  connection.query('SELECT id, location_name name FROM sys_locations ORDER BY location_name;', function(err, rows) {
+  connection.query('CALL get_locations();', function(err, rows) {
     if (err) {
       res.status(500).send({error: err});
     }
@@ -22,14 +22,14 @@ router.get('/', function(req, res) {
 });
 
 router.get('/:locationId', function(req, res) {
-  connection.query('CALL GetLocationAndVendors(?);', [req.params.locationId], function(err, rows) {
+  connection.query('CALL get_location_and_vendors(?);', [req.params.locationId], function(err, rows) {
     var records = rows[0]; // not interested in query information
     if (records.length > 0) {
       // Transform the flat row data into more structured json
       var location = _.first(records);
       var returnVal = {
-        id: location.id,
-        name: location.name,
+        id: location.location_id,
+        name: location.location_name,
         vendors: []
       };
       if (location.vendor_id) {

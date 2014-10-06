@@ -7,15 +7,15 @@ var connection = mysql.createConnection({
   host: '127.0.0.1',
   user: 'root',
   password: '',
-  database: 'drinkon'
+  database: 'drinkonstd'
 });
 
 router.get('/:vendorId', function (req, res) {
-  connection.query('CALL GetVendor(?);', [req.params.vendorId], function (err, row) {
+  connection.query('CALL get_vendor(?);', [req.params.vendorId], function (err, row) {
     if (row && row.length > 0 && row[0].length > 0) {
       var record = row[0][0];
       var returnVal = {
-        id: record.id,
+        id: record.vendor_id,
         name: record.vendor_name,
         address: {
           line1: record.vendor_addr1,
@@ -30,9 +30,9 @@ router.get('/:vendorId', function (req, res) {
         locationId: record.location_id,
         image: record.vendor_image,
         description: {
-          line1: record.vendor_description_line1,
-          line2: record.vendor_description_line2,
-          line3: record.vendor_description_line3
+          line1: record.vendor_line1,
+          line2: record.vendor_line2,
+          line3: record.vendor_line3
         },
         distance: record.distance,
         sells: {
@@ -67,7 +67,7 @@ function concatIdAndNameForEquality(record) {
 }
 
 router.get('/:vendorId/product', function (req, res) {
-  connection.query('CALL GetVendorProducts(?);', [req.params.vendorId], function (err, row) {
+  connection.query('CALL get_vendor_products(?);', [req.params.vendorId], function (err, row) {
     var records = row[0];
     var returnVal = {
       productTypes: []
