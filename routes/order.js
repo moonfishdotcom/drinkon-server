@@ -10,19 +10,17 @@ var connection = mysql.createConnection({
   database: 'drinkon'
 });
 
-router.get('/:orderId', function (req, res) {
+router.get('/:orderId', function (req, res, next) {
   var order = null;
   connection.query('CALL GetOrderHeader(?);', [req.params.orderId], function (err, headers) {
     if (err) {
-      console.log(err);
-      res.status(500).send({ error: err });
+      next({ error: err });
     }
     else {
       order = headers[0][0];
       connection.query('CALL GetOrderLines(?);', [req.params.orderId], function (err, lines) {
         if (err) {
-          console.log(err);
-          res.status(500).send({ error: err });
+          next({ error: err });
         }
         else {
           if (lines.length > 0) {
@@ -38,11 +36,10 @@ router.get('/:orderId', function (req, res) {
   })
 });
 
-router.get('/user/:userId', function(req, res) {
+router.get('/user/:userId', function(req, res, next) {
   connection.query('CALL GetOrdersForUser(?);', [req.params.userId], function (err, headers) {
     if (err) {
-      console.log(err);
-      res.status(500).send({ error: err });
+      next({ error: err });
     }
     else {
       res.status(200).send(headers[0]);
@@ -50,11 +47,10 @@ router.get('/user/:userId', function(req, res) {
   });
 });
 
-router.post('/', function (req, res) {
+router.post('/', function (req, res, next) {
   connection.query('CALL CreateOrder(?,?);', [req.body.vendorId, req.body.customerName], function (err, rows) {
     if (err) {
-      console.log(err);
-      res.status(500).send({ error: err });
+      next({ error: err });
     }
     else {
       res.status(200).send(rows[0]);
@@ -62,8 +58,7 @@ router.post('/', function (req, res) {
   });
 });
 
-router.post('/:orderId/line', function (req, res) {
-  console.log(req.body);
+router.post('/:orderId/line', function (req, res, next) {
   connection.query('CALL AddLineToOrder(?,?,?,?);', [
       req.params.orderId,
       req.body.productId,
@@ -71,8 +66,7 @@ router.post('/:orderId/line', function (req, res) {
       req.body.quantity],
     function (err, rows) {
       if (err) {
-        console.log(err);
-        res.status(500).send({ error: err });
+        next({ error: err });
       }
       else {
         res.status(200).send(rows[0]);

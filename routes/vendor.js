@@ -10,7 +10,7 @@ var connection = mysql.createConnection({
   database: 'drinkon'
 });
 
-router.get('/:vendorId', function (req, res) {
+router.get('/:vendorId', function (req, res, next) {
   connection.query('CALL GetVendor(?);', [req.params.vendorId], function (err, row) {
     if (row && row.length > 0 && row[0].length > 0) {
       var record = row[0][0];
@@ -43,7 +43,7 @@ router.get('/:vendorId', function (req, res) {
       res.json(returnVal);
     }
     else {
-      res.status(500).send({error: "No values for vendor"});
+      next({error: "No values for vendor"});
     }
   })
 });
@@ -66,7 +66,7 @@ function concatIdAndNameForEquality(record) {
   return record.id + '|' + record.name;
 }
 
-router.get('/:vendorId/product', function (req, res) {
+router.get('/:vendorId/product', function (req, res, next) {
   connection.query('CALL GetVendorProducts(?);', [req.params.vendorId], function (err, row) {
     var records = row[0];
     var returnVal = {
