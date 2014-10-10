@@ -10,10 +10,10 @@ var connection = mysql.createConnection({
   database: 'drinkon'
 });
 
-router.get('/', function(req, res) {
+router.get('/', function(req, res, next) {
   connection.query('SELECT id, location_name name FROM sys_locations ORDER BY location_name;', function(err, rows) {
     if (err) {
-      res.status(500).send({error: err});
+      next({error: err});
     }
     else {
       res.json(rows);
@@ -21,7 +21,7 @@ router.get('/', function(req, res) {
   })
 });
 
-router.get('/:locationId', function(req, res) {
+router.get('/:locationId', function(req, res, next) {
   connection.query('CALL GetLocationAndVendors(?);', [req.params.locationId], function(err, rows) {
     var records = rows[0]; // not interested in query information
     if (records.length > 0) {
@@ -48,7 +48,7 @@ router.get('/:locationId', function(req, res) {
       res.json(returnVal);
     }
     else {
-      res.status(500).send({error: 'No records returned'});
+      next({error: 'No records returned'});
     }
   })
 });
