@@ -1,7 +1,7 @@
 var passport = require('passport');
 
 module.exports = {
-	token = function () {
+	token: function () {
 		// token auth
 	}, 
 	facebook: function(){
