@@ -4,11 +4,7 @@ var express = require('express'),
 	bodyParser = require('body-parser'),
 	cors = require('cors'),
 	middleware = require(__dirname + '/middleware/index'),
-	passport = require('passport'),
-  jwt = require('jwt-simple'),
-  secret = "Uber secret",
-  moment = require("moment");
-
+	passport = require('passport');
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
@@ -26,39 +22,35 @@ var port = process.env.PORT || 8080;
 
 app.post('/login', function(req, res, next) {
 	passport.authenticate('local', function(err, user, info) {
-		//replace with authorization middleware for selected login type
+    //Handler for once user has successfully logged in to generate token
     if(err){
       return next(err);
     }else if(user){
-
-      //provide Token
-      var expire = moment().add(1, 'day').toISOString();
-      var token = jwt.encode({customer: user, expire: expire}, secret);
-
-      res.send({token: token, expire: expire, customer: user});
+      res.send(middleware.strategies.generateToken(user));
     }else{
       res.status(403).send(info);
     }
 	})(req, res, next);
-})
+});
 
-//app.use(function(req, res, next) {
-//	passport.authenticate('bearer', function(err, user, info) {
-//		//replace with authorization middleware for selected access type
-//		if (err || !user)
-//			res.status(401).send('nope')
-//		else{
-//			req.user = user;
-//			next();
-//		}
-//	})(req, res, next);
-//})
+app.use(function(req, res, next) {
+	passport.authenticate('bearer', function(err, user, info) {
+    //Global auth handler to limit access dependant on a valid access token
+    if(user){
+      req.user = user;
+      next();
+    }else{
+      res.status(403).send(info || "Unexpected Error");
+    }
+	})(req, res, next);
+});
+
 app.use('/location', require('./routes/location'));
 app.use('/vendor', require('./routes/vendor'));
 app.use('/order', require('./routes/order'));
-app.get('/test', function(req, res) {
-	console.log('user', req.user);
-	res.send('YAY!');
+
+app.get('/test', function(req, res){
+  res.send(req.user);
 })
 
 app.use(middleware.errorHandler());
