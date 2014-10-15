@@ -7,40 +7,56 @@ var connection = mysql.createConnection({
   host: '127.0.0.1',
   user: 'root',
   password: '',
-  database: 'drinkon'
+  database: 'drinkonstd2'
+});
+
+function transformVendorRecord(record) {
+  return {
+    id: record.vendor_id,
+    name: record.vendor_name,
+    address: {
+      line1: record.vendor_addr1,
+      line2: record.vendor_addr2,
+      line3: record.vendor_addr3,
+      line4: record.vendor_addr4,
+      postcode: record.vendor_postcode
+    },
+    phone: record.vendor_phone,
+    fax: record.vendor_fax,
+    email: record.vendor_email,
+    locationId: record.location_id,
+    locationName: record.location_name,
+    image: record.vendor_image,
+    description: {
+      line1: record.vendor_line1,
+      line2: record.vendor_line2,
+      line3: record.vendor_line3
+    },
+    distance: record.vendor_distance,
+    sells: {
+      food: record.vendor_sells_food,
+      drink: record.vendor_sells_drink,
+      alcohol: record.vendor_sells_alcohol
+    }
+  };
+}
+
+router.get('/', function(req, res, next) {
+  connection.query('CALL get_vendor(null);', function (err, row) {
+    if (row && row.length > 0 && row[0].length > 0) {
+      var vendors = _.map(row[0], transformVendorRecord);
+      res.json(vendors);
+    }
+    else {
+      next({error: "No values for vendor"});
+    }
+  })
 });
 
 router.get('/:vendorId', function (req, res, next) {
-  connection.query('CALL GetVendor(?);', [req.params.vendorId], function (err, row) {
+  connection.query('CALL get_vendor(?);', [req.params.vendorId], function (err, row) {
     if (row && row.length > 0 && row[0].length > 0) {
-      var record = row[0][0];
-      var returnVal = {
-        id: record.id,
-        name: record.vendor_name,
-        address: {
-          line1: record.vendor_addr1,
-          line2: record.vendor_addr2,
-          line3: record.vendor_addr3,
-          line4: record.vendor_addr4,
-          postcode: record.vendor_postcode,
-        },
-        phone: record.vendor_phone,
-        fax: record.vendor_fax,
-        email: record.vendor_email,
-        locationId: record.location_id,
-        image: record.vendor_image,
-        description: {
-          line1: record.vendor_description_line1,
-          line2: record.vendor_description_line2,
-          line3: record.vendor_description_line3
-        },
-        distance: record.distance,
-        sells: {
-          food: record.sellsFood,
-          drink: record.sellsDrink
-        }
-      };
-      res.json(returnVal);
+      res.json(transformVendorRecord(row[0][0]));
     }
     else {
       next({error: "No values for vendor"});
@@ -51,14 +67,16 @@ router.get('/:vendorId', function (req, res, next) {
 function mapToProductTypeHeader(record) {
   return {
     id: record.product_type_id,
-    name: record.product_type_name
+    name: record.product_type_name,
+    image: record.product_type_image_name
   };
 }
 
 function mapToProductHeader(record) {
   return {
     id: record.product_id,
-    name: record.product_name
+    name: record.product_name,
+    image: record.product_image_name
   };
 }
 
@@ -67,7 +85,7 @@ function concatIdAndNameForEquality(record) {
 }
 
 router.get('/:vendorId/product', function (req, res, next) {
-  connection.query('CALL GetVendorProducts(?);', [req.params.vendorId], function (err, row) {
+  connection.query('CALL get_vendor_products(?);', [req.params.vendorId], function (err, row) {
     var records = row[0];
     var returnVal = {
       productTypes: []
@@ -77,6 +95,7 @@ router.get('/:vendorId/product', function (req, res, next) {
       var productType = {
         id: productType.id,
         name: productType.name,
+        image: productType.image,
         products: []
       };
 
@@ -84,6 +103,7 @@ router.get('/:vendorId/product', function (req, res, next) {
         var product = {
           id: product.id,
           name: product.name,
+          image: product.image,
           measures: []
         };
 

@@ -1,5 +1,6 @@
 var express = require('express'),
   router = express.Router(),
+  passport = require('passport'),
   mysql = require('mysql'),
   _ = require('lodash');
 
@@ -7,10 +8,11 @@ var connection = mysql.createConnection({
   host: '127.0.0.1',
   user: 'root',
   password: '',
-  database: 'drinkon'
+  database: 'drinkonstd2'
 });
 
 router.get('/', function(req, res, next) {
+//router.get('/', passport.authenticate('bearer', { session: false }), function(req, res, next) {
   connection.query('SELECT id, location_name name FROM sys_locations ORDER BY location_name;', function(err, rows) {
     if (err) {
       next({error: err});
@@ -52,6 +54,5 @@ router.get('/:locationId', function(req, res, next) {
     }
   })
 });
-
 
 module.exports = router;
