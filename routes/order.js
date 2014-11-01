@@ -1,14 +1,8 @@
 var express = require('express'),
   router = express.Router(),
   mysql = require('mysql'),
-  passport = require('passport');
-
-var connection = mysql.createConnection({
-  host: '127.0.0.1',
-  user: 'root',
-  password: '',
-  database: 'drinkonstd2'
-});
+  passport = require('passport'),
+  connection = require('./dbConnection');
 
 router.get('/:orderId', function (req, res, next) {
   console.log('Calling with ' + req.params.orderId);
@@ -37,7 +31,7 @@ router.get('/:orderId', function (req, res, next) {
   })
 });
 
-router.get('/user/:userId', function(req, res, next) {
+router.get('/user/:userId', function (req, res, next) {
   connection.query('CALL get_orders_for_user(?);', [req.params.userId], function (err, headers) {
     if (err) {
       next({ error: err });
@@ -75,11 +69,11 @@ router.post('/:orderId/line', function (req, res, next) {
     });
 });
 
-router.put('/:orderId/line/:lineId', function(req, res) {
+router.put('/:orderId/line/:lineId', function (req, res) {
   connection.query('CALL update_order_line(?,?);', [
       req.params.lineId,
       req.body.quantity],
-    function(err, rows) {
+    function (err, rows) {
       if (err) {
         console.log(err);
         res.status(500).send({ error: err });
@@ -90,12 +84,26 @@ router.put('/:orderId/line/:lineId', function(req, res) {
     });
 });
 
-router.delete('/:orderId/line/:lineId', function(req, res) {
+router.delete('/:orderId/line/:lineId', function (req, res) {
   connection.query('CALL delete_order_line(?);', [req.params.lineId],
-    function(err, rows) {
+    function (err, rows) {
       if (err) {
         console.log(err);
         res.status(500).send({ error: err });
+      }
+      else {
+        res.status(200).send(rows[0]);
+      }
+    });
+});
+
+router.put('/:orderId', function (req, res) {
+  console.log(req.body.collectionTime);
+  connection.query('CALL place_order(?,?);', [req.params.orderId, req.body.collectionTime],
+    function (err, rows) {
+      if (err) {
+        console.log(err);
+        res.status(500).send({error: err});
       }
       else {
         res.status(200).send(rows[0]);

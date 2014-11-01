@@ -3,14 +3,8 @@ var LocalStrategy = require('passport-local').Strategy,
   jwt = require('jwt-simple'),
   secret = 'Uber secret',
   mysql = require('mysql'),
-  moment = require('moment');
-
-var connection = mysql.createConnection({
-  host: '127.0.0.1',
-  user: 'root',
-  password: '',
-  database: 'drinkonstd2'
-});
+  moment = require('moment'),
+  connection = require('../routes/dbConnection');
 
 module.exports = {
 	local: function() {

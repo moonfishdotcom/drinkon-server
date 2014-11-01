@@ -37,6 +37,7 @@ app.use('/', require('./routes/auth'));
 app.use('/location', require('./routes/location'));
 app.use('/vendor', require('./routes/vendor'));
 app.use('/order', require('./routes/order'));
+app.use('/notification', require('./routes/notification'));
 
 app.use(middleware.errorHandler());
 

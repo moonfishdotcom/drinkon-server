@@ -4,14 +4,8 @@ var express = require('express'),
   jwt = require('jwt-simple'),
   secret = "Uber secret",
   mysql = require('mysql'),
-  moment = require('moment');
-
-var connection = mysql.createConnection({
-  host: '127.0.0.1',
-  user: 'root',
-  password: '',
-  database: 'drinkonstd2'
-});
+  moment = require('moment'),
+  connection = require('./dbConnection');
 
 router.post('/login', function (req, res, next) {
 

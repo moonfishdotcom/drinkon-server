@@ -1,14 +1,8 @@
 var express = require('express'),
   router = express.Router(),
   mysql = require('mysql'),
-  _ = require('lodash');
-
-var connection = mysql.createConnection({
-  host: '127.0.0.1',
-  user: 'root',
-  password: '',
-  database: 'drinkonstd2'
-});
+  _ = require('lodash'),
+  connection = require('./dbConnection');
 
 function transformVendorRecord(record) {
   return {

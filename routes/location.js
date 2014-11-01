@@ -2,14 +2,8 @@ var express = require('express'),
   router = express.Router(),
   passport = require('passport'),
   mysql = require('mysql'),
-  _ = require('lodash');
-
-var connection = mysql.createConnection({
-  host: '127.0.0.1',
-  user: 'root',
-  password: '',
-  database: 'drinkonstd2'
-});
+  _ = require('lodash'),
+  connection = require('./dbConnection');
 
 router.get('/', function(req, res, next) {
 //router.get('/', passport.authenticate('bearer', { session: false }), function(req, res, next) {
